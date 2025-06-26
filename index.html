@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folder Access Management - scenarios</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .visualization {
+            display: flex;
+            justify-content: center;
+            height: 500px;
+            position: relative;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .folder-structure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+            width: 300px;
+            border-right: 1px solid #ecf0f1;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .folder {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .folder:hover {
+            background-color: #e8f4fc;
+        }
+        
+        .folder.active {
+            background-color: #e1f0fa;
+            border-left-color: #2980b9;
+        }
+        
+        .folder-name {
+            font-weight: 600;
+        }
+        
+        .folder-owner {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 3px;
+        }
+        
+        .folder-access {
+            font-size: 12px;
+            color: #27ae60;
+            margin-top: 3px;
+        }
+        
+        .folder-no-access {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 3px;
+        }
+        
+        .subfolders {
+            margin-left: 20px;
+            display: none;
+        }
+        
+        .subfolders.show {
+            display: block;
+        }
+        
+        .user-list {
+            padding: 30px;
+            width: 250px;
+            border-right: 1px solid #ecf0f1;
+        }
+        
+        .user {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .user-name {
+            font-weight: 500;
+        }
+        
+        .user-role {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .actions {
+            padding: 30px;
+            width: 350px;
+        }
+        
+        .action-card {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .action-description {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+        
+        .action-btn.secondary {
+            background-color: #95a5a6;
+        }
+        
+        .action-btn.secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .action-btn.danger {
+            background-color: #e74c3c;
+        }
+        
+        .action-btn.danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .action-btn.success {
+            background-color: #2ecc71;
+        }
+        
+        .action-btn.success:hover {
+            background-color: #27ae60;
+        }
+        
+        .status-message {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+        
+        .status-message.show {
+            opacity: 1;
+        }
+        
+        .status-message.error {
+            background-color: rgba(231, 76, 60, 0.9);
+        }
+        
+        .use-case-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .use-case-btn {
+            padding: 8px 12px;
+            font-size: 13px;
+            background-color: #95a5a6;
+        }
+        
+        .use-case-btn:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .use-case-btn.active {
+            background-color: #3498db;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+        
+        .legend-owner {
+            background-color: #3498db;
+        }
+        
+        .legend-access {
+            background-color: #2ecc71;
+        }
+        
+        .legend-no-access {
+            background-color: #e74c3c;
+        }
+        
+        @media (max-width: 900px) {
+            .visualization {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .folder-structure, .user-list, .actions {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #ecf0f1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WovvBox Folder Access Management</h1>
+        <div class="subtitle">Interactive demonstration of folder sharing and access control scenarios</div>
+        
+        <div class="use-case-selector">
+            <button class="use-case-btn active" data-case="1">UC1: Remove from Subfolder</button>
+            <button class="use-case-btn" data-case="2">UC2: Remove from Top-Level</button>
+            <button class="use-case-btn" data-case="3">UC3: Re-share Full Access</button>
+            <button class="use-case-btn" data-case="4">UC4: Owner Management</button>
+            <button class="use-case-btn" data-case="5">UC5: Remove from Mid-Level</button>
+            <button class="use-case-btn" data-case="6">UC6: Create Where Access Exists</button>
+            <button class="use-case-btn" data-case="7">UC7: New Subfolder Under Removed</button>
+            <button class="use-case-btn" data-case="8">UC8: Remove from Deep Subfolder</button>
+            <button class="use-case-btn" data-case="9">UC9: Re-share Subfolder</button>
+            <button class="use-case-btn" data-case="10">UC10: Hidden Folder</button>
+            <button class="use-case-btn" data-case="11">UC11: Inherit Access</button>
+            <button class="use-case-btn" data-case="12">UC12: Direct Share Survives</button>
+        </div>
+        
+        <div class="visualization">
+            <div class="folder-structure">
+                <div class="folder" data-folder="A">
+                    <div class="folder-name">FOLDER_A</div>
+                    <div class="folder-owner">Owner: OWNER</div>
+                    <div class="folder-access">Access: Full</div>
+                </div>
+                <div class="subfolders" id="subfolders-A">
+                    <div class="folder" data-folder="B">
+                        <div class="folder-name">FOLDER_B</div>
+                        <div class="folder-owner">Created by: USER_1</div>
+                        <div class="folder-access">Access: Editor</div>
+                    </div>
+                    <div class="subfolders" id="subfolders-B">
+                        <div class="folder" data-folder="C">
+                            <div class="folder-name">FOLDER_C</div>
+                            <div class="folder-owner">Created by: USER_2</div>
+                            <div class="folder-access">Access: Editor</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="user-list">
+                <div class="user">
+                    <div class="user-avatar">O</div>
+                    <div>
+                        <div class="user-name">OWNER</div>
+                        <div class="user-role">Owner</div>
+                    </div>
+                </div>
+                <div class="user">
+                    <div class="user-avatar">1</div>
+                    <div>
+                        <div class="user-name">USER_1</div>
+                        <div class="user-role">Editor</div>
+                    </div>
+                </div>
+                <div class="user">
+                    <div class="user-avatar">2</div>
+                    <div>
+                        <div class="user-name">USER_2</div>
+                        <div class="user-role">Editor</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <div class="action-card">
+                    <div class="action-title">Current Scenario: UC1 - Remove Access from Subfolder Only</div>
+                    <div class="action-description">
+                        FOLDER_A is shared with USER_1 and USER_2. USER_1 creates FOLDER_B inside FOLDER_A. 
+                        USER_2 creates FOLDER_C inside FOLDER_B. The OWNER removes USER_1 from FOLDER_C.
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn secondary" id="reset-btn">Reset</button>
+                        <button class="action-btn" id="execute-btn">Execute Scenario</button>
+                    </div>
+                </div>
+                
+                <div class="action-card">
+                    <div class="action-title">Manual Actions</div>
+                    <div class="action-description">
+                        You can also manually test different access control actions:
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn danger" id="remove-access-btn">Remove User Access</button>
+                        <button class="action-btn success" id="restore-access-btn">Restore User Access</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-message" id="status-message">Action completed successfully!</div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color legend-owner"></div>
+                <div>Folder Owner</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-access"></div>
+                <div>Has Access</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-no-access"></div>
+                <div>No Access</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const useCaseButtons = document.querySelectorAll('.use-case-btn');
+            const executeBtn = document.getElementById('execute-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const removeAccessBtn = document.getElementById('remove-access-btn');
+            const restoreAccessBtn = document.getElementById('restore-access-btn');
+            const statusMessage = document.getElementById('status-message');
+            const folders = document.querySelectorAll('.folder');
+            const subfolderContainers = document.querySelectorAll('.subfolders');
+            
+            // Current state
+            let currentUseCase = 1;
+            let folderAccess = {
+                'A': { 'OWNER': 'owner', 'USER_1': 'editor', 'USER_2': 'editor' },
+                'B': { 'OWNER': 'owner', 'USER_1': 'editor', 'USER_2': 'editor' },
+                'C': { 'OWNER': 'owner', 'USER_1': 'editor', 'USER_2': 'editor' }
+            };
+            
+            // Initialize
+            updateFolderDisplay();
+            setupFolderClickHandlers();
+            
+            // Use case selector
+            useCaseButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    useCaseButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentUseCase = parseInt(this.dataset.case);
+                    updateScenarioDescription();
+                    resetState();
+                });
+            });
+            
+            // Execute scenario button
+            executeBtn.addEventListener('click', function() {
+                executeUseCase(currentUseCase);
+            });
+            
+            // Reset button
+            resetBtn.addEventListener('click', resetState);
+            
+            // Manual action buttons
+            removeAccessBtn.addEventListener('click', function() {
+                if (confirm("Remove USER_1's access to the selected folder?")) {
+                    const selectedFolder = document.querySelector('.folder.active');
+                    if (selectedFolder) {
+                        const folderId = selectedFolder.dataset.folder;
+                        removeUserAccess(folderId, 'USER_1');
+                        showStatusMessage(`Removed USER_1 access from FOLDER_${folderId}`);
+                    } else {
+                        showStatusMessage("Please select a folder first", true);
+                    }
+                }
+            });
+            
+            restoreAccessBtn.addEventListener('click', function() {
+                if (confirm("Restore USER_1's access to the selected folder?")) {
+                    const selectedFolder = document.querySelector('.folder.active');
+                    if (selectedFolder) {
+                        const folderId = selectedFolder.dataset.folder;
+                        restoreUserAccess(folderId, 'USER_1');
+                        showStatusMessage(`Restored USER_1 access to FOLDER_${folderId}`);
+                    } else {
+                        showStatusMessage("Please select a folder first", true);
+                    }
+                }
+            });
+            
+            // Functions
+            function updateScenarioDescription() {
+                const scenarios = {
+                    1: {
+                        title: "UC1 - Remove Access from Subfolder Only",
+                        desc: "FOLDER_A is shared with USER_1 and USER_2. USER_1 creates FOLDER_B inside FOLDER_A. USER_2 creates FOLDER_C inside FOLDER_B. The OWNER removes USER_1 from FOLDER_C."
+                    },
+                    2: {
+                        title: "UC2 - Remove Access from Top-Level FOLDER",
+                        desc: "OWNER removes USER_1 from FOLDER_A. USER_1 loses access to FOLDER_A and all subfolders (FOLDER_B, FOLDER_C, etc.). Other users retain their access."
+                    },
+                    3: {
+                        title: "UC3 - Re-share Full Access After Removal",
+                        desc: "OWNER re-shares FOLDER_A with USER_1 after removal. USER_1 regains access to all subfolders inside FOLDER_A based on the selected permission level."
+                    },
+                    4: {
+                        title: "UC4 - Only OWNER Can Manage Access",
+                        desc: "OWNER shared FOLDER_A with USER_1 and USER_2. Only OWNER can manage sharing/removal for all folders. USER_1 and USER_2 cannot manage access for each other."
+                    },
+                    5: {
+                        title: "UC5 - Remove Access from Mid-Level FOLDER",
+                        desc: "OWNER removes USER_1 from FOLDER_B (inside FOLDER_A). USER_1 loses access to FOLDER_B and any subfolders (like FOLDER_C) but still has access to FOLDER_A."
+                    },
+                    6: {
+                        title: "UC6 - Create Folder Where Access Still Exists",
+                        desc: "USER_1 is removed from FOLDER_B but still has Editor access to FOLDER_A. USER_1 can create new folders inside FOLDER_A but cannot view FOLDER_B or its subfolders."
+                    },
+                    7: {
+                        title: "UC7 - New Subfolder Under a Removed Folder",
+                        desc: "USER_1 is removed from FOLDER_B. USER_2 creates FOLDER_C inside FOLDER_B. USER_1 has no access to FOLDER_B or FOLDER_C."
+                    },
+                    8: {
+                        title: "UC8 - Remove Access from Deep Subfolder Only",
+                        desc: "OWNER removes USER_1 only from FOLDER_C. USER_1 still has access to FOLDER_A and FOLDER_B but cannot access FOLDER_C."
+                    },
+                    9: {
+                        title: "UC9 - Re-share a Subfolder Only",
+                        desc: "OWNER re-shares FOLDER_C with USER_1. USER_1 can access FOLDER_C again. If USER_1 has access to FOLDER_B, the full path is visible; otherwise FOLDER_C appears as standalone."
+                    },
+                    10: {
+                        title: "UC10 - Hidden Folder After Access Removal",
+                        desc: "OWNER removes USER_1 from FOLDER_C. FOLDER_C is no longer visible to USER_1. If USER_1 uses a direct link, it shows 'Access Denied'."
+                    },
+                    11: {
+                        title: "UC11 - Inherit Access on New Subfolder Creation",
+                        desc: "USER_1 has access to FOLDER_A. When FOLDER_B is created inside FOLDER_A (by OWNER or USER_1), USER_1 automatically has access to FOLDER_B unless explicitly restricted."
+                    },
+                    12: {
+                        title: "UC12 - Direct Share Survives Parent Folder Removal",
+                        desc: "OWNER shares both FOLDER_A and FOLDER_B (inside it) with USER_1. Later, OWNER removes USER_1 from FOLDER_A. USER_1 loses access to FOLDER_A but keeps access to FOLDER_B."
+                    }
+                };
+                
+                const actionCard = document.querySelector('.action-card');
+                actionCard.querySelector('.action-title').textContent = `Current Scenario: ${scenarios[currentUseCase].title}`;
+                actionCard.querySelector('.action-description').textContent = scenarios[currentUseCase].desc;
+            }
+            
+            function executeUseCase(useCase) {
+                resetState();
+                
+                switch(useCase) {
+                    case 1:
+                        // UC1: Remove USER_1 from FOLDER_C only
+                        setTimeout(() => {
+                            removeUserAccess('C', 'USER_1');
+                            showStatusMessage("Removed USER_1 access from FOLDER_C only");
+                        }, 500);
+                        break;
+                        
+                    case 2:
+                        // UC2: Remove USER_1 from FOLDER_A (top level)
+                        setTimeout(() => {
+                            removeUserAccess('A', 'USER_1');
+                            showStatusMessage("Removed USER_1 access from FOLDER_A and all subfolders");
+                        }, 500);
+                        break;
+                        
+                    case 3:
+                        // UC3: Remove then re-share FOLDER_A with USER_1
+                        setTimeout(() => {
+                            removeUserAccess('A', 'USER_1');
+                            setTimeout(() => {
+                                restoreUserAccess('A', 'USER_1');
+                                showStatusMessage("Removed then restored USER_1 access to FOLDER_A and all subfolders");
+                            }, 1000);
+                        }, 500);
+                        break;
+                        
+                    case 4:
+                        // UC4: Demonstration that only OWNER can manage access
+                        showStatusMessage("Only OWNER can manage access - try removing USER_1 manually");
+                        break;
+                        
+                    case 5:
+                        // UC5: Remove USER_1 from FOLDER_B (mid-level)
+                        setTimeout(() => {
+                            removeUserAccess('B', 'USER_1');
+                            showStatusMessage("Removed USER_1 access from FOLDER_B and FOLDER_C");
+                        }, 500);
+                        break;
+                        
+                    case 6:
+                        // UC6: USER_1 can create in FOLDER_A but not access FOLDER_B
+                        setTimeout(() => {
+                            removeUserAccess('B', 'USER_1');
+                            showStatusMessage("USER_1 can create in FOLDER_A but can't access FOLDER_B");
+                        }, 500);
+                        break;
+                        
+                    case 7:
+                        // UC7: New subfolder under removed folder
+                        setTimeout(() => {
+                            removeUserAccess('B', 'USER_1');
+                            setTimeout(() => {
+                                // Simulate USER_2 creating FOLDER_D under B
+                                if (!folderAccess['D']) {
+                                    folderAccess['D'] = { 'OWNER': 'owner', 'USER_2': 'editor' };
+                                    const subfoldersB = document.getElementById('subfolders-B');
+                                    const newFolder = document.createElement('div');
+                                    newFolder.className = 'folder';
+                                    newFolder.dataset.folder = 'D';
+                                    newFolder.innerHTML = `
+                                        <div class="folder-name">FOLDER_D</div>
+                                        <div class="folder-owner">Created by: USER_2</div>
+                                        <div class="folder-access">Access: Editor</div>
+                                    `;
+                                    subfoldersB.appendChild(newFolder);
+                                    setupFolderClickHandlers();
+                                }
+                                showStatusMessage("USER_2 created FOLDER_D under FOLDER_B - USER_1 has no access");
+                            }, 1000);
+                        }, 500);
+                        break;
+                        
+                    case 8:
+                        // UC8: Remove from deep subfolder only
+                        setTimeout(() => {
+                            removeUserAccess('C', 'USER_1');
+                            showStatusMessage("Removed USER_1 access from FOLDER_C only");
+                        }, 500);
+                        break;
+                        
+                    case 9:
+                        // UC9: Re-share a subfolder only
+                        setTimeout(() => {
+                            removeUserAccess('C', 'USER_1');
+                            setTimeout(() => {
+                                restoreUserAccess('C', 'USER_1');
+                                showStatusMessage("Removed then restored USER_1 access to FOLDER_C only");
+                            }, 1000);
+                        }, 500);
+                        break;
+                        
+                    case 10:
+                        // UC10: Hidden folder after removal
+                        setTimeout(() => {
+                            removeUserAccess('C', 'USER_1');
+                            showStatusMessage("FOLDER_C is now hidden from USER_1");
+                        }, 500);
+                        break;
+                        
+                    case 11:
+                        // UC11: Inherit access on new subfolder
+                        setTimeout(() => {
+                            // Simulate creating FOLDER_D under A
+                            if (!folderAccess['D']) {
+                                folderAccess['D'] = { 'OWNER': 'owner', 'USER_1': 'editor', 'USER_2': 'editor' };
+                                const subfoldersA = document.getElementById('subfolders-A');
+                                const newFolder = document.createElement('div');
+                                newFolder.className = 'folder';
+                                newFolder.dataset.folder = 'D';
+                                newFolder.innerHTML = `
+                                    <div class="folder-name">FOLDER_D</div>
+                                    <div class="folder-owner">Created by: USER_1</div>
+                                    <div class="folder-access">Access: Editor</div>
+                                `;
+                                subfoldersA.appendChild(newFolder);
+                                setupFolderClickHandlers();
+                            }
+                            showStatusMessage("USER_1 created FOLDER_D under FOLDER_A - inherits access");
+                        }, 500);
+                        break;
+                        
+                    case 12:
+                        // UC12: Direct share survives parent removal
+                        setTimeout(() => {
+                            // First share FOLDER_B directly
+                            folderAccess['B'].USER_1 = 'editor';
+                            // Then remove from FOLDER_A
+                            removeUserAccess('A', 'USER_1');
+                            showStatusMessage("USER_1 lost access to FOLDER_A but keeps FOLDER_B access");
+                        }, 500);
+                        break;
+                }
+            }
+            
+            function removeUserAccess(folderId, userId) {
+                if (folderAccess[folderId]) {
+                    delete folderAccess[folderId][userId];
+                    
+                    // For top-level removal, remove access from all subfolders
+                    if (folderId === 'A') {
+                        removeUserAccess('B', userId);
+                        removeUserAccess('C', userId);
+                        if (folderAccess['D']) removeUserAccess('D', userId);
+                    }
+                    
+                    // For mid-level removal, remove from subfolders
+                    if (folderId === 'B') {
+                        removeUserAccess('C', userId);
+                        if (folderAccess['D']) removeUserAccess('D', userId);
+                    }
+                    
+                    updateFolderDisplay();
+                }
+            }
+            
+            function restoreUserAccess(folderId, userId) {
+                if (folderAccess[folderId]) {
+                    folderAccess[folderId][userId] = 'editor';
+                    
+                    // For top-level restore, optionally restore access to subfolders
+                    if (folderId === 'A' && currentUseCase === 3) {
+                        restoreUserAccess('B', userId);
+                        restoreUserAccess('C', userId);
+                        if (folderAccess['D']) restoreUserAccess('D', userId);
+                    }
+                    
+                    updateFolderDisplay();
+                }
+            }
+            
+            function updateFolderDisplay() {
+                folders.forEach(folder => {
+                    const folderId = folder.dataset.folder;
+                    const accessElement = folder.querySelector('.folder-access, .folder-no-access');
+                    
+                    if (folderAccess[folderId] && folderAccess[folderId]['USER_1']) {
+                        if (accessElement.classList.contains('folder-no-access')) {
+                            accessElement.classList.remove('folder-no-access');
+                            accessElement.classList.add('folder-access');
+                        }
+                        accessElement.textContent = `Access: ${folderAccess[folderId]['USER_1']}`;
+                    } else {
+                        if (accessElement.classList.contains('folder-access')) {
+                            accessElement.classList.remove('folder-access');
+                            accessElement.classList.add('folder-no-access');
+                        }
+                        accessElement.textContent = "No Access";
+                    }
+                });
+            }
+            
+            function resetState() {
+                // Reset access state
+                folderAccess = {
+                    'A': { 'OWNER': 'owner', 'USER_1': 'editor', 'USER_2': 'editor' },
+                    'B': { 'OWNER': 'owner', 'USER_1': 'editor', 'USER_2': 'editor' },
+                    'C': { 'OWNER': 'owner', 'USER_1': 'editor', 'USER_2': 'editor' }
+                };
+                
+                // Remove any dynamically created folders except A, B, C
+                const subfoldersA = document.getElementById('subfolders-A');
+                const existingFolders = subfoldersA.querySelectorAll('.folder[data-folder="D"]');
+                existingFolders.forEach(folder => folder.remove());
+                delete folderAccess['D'];
+                
+                updateFolderDisplay();
+                showStatusMessage("Reset to initial state");
+            }
+            
+            function showStatusMessage(message, isError = false) {
+                statusMessage.textContent = message;
+                statusMessage.classList.toggle('error', isError);
+                statusMessage.classList.add('show');
+                
+                setTimeout(() => {
+                    statusMessage.classList.remove('show');
+                }, 3000);
+            }
+            
+            function setupFolderClickHandlers() {
+                folders.forEach(folder => {
+                    folder.addEventListener('click', function() {
+                        // Toggle active state
+                        folders.forEach(f => f.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Toggle subfolder visibility
+                        const folderId = this.dataset.folder;
+                        const subfolderContainer = document.getElementById(`subfolders-${folderId}`);
+                        if (subfolderContainer) {
+                            subfolderContainer.classList.toggle('show');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
